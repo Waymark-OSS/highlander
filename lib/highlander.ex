@@ -35,6 +35,13 @@ defmodule Highlander do
     {:stop, {:shutdown, :name_conflict}, Map.delete(state, :pid)}
   end
 
+  # We get here if we never started the process. Otherwise we get a
+  # `FunctionClauseError` which eventually causes the entire BEAM process to die
+  # if we are not isolating the Highlander processes with a dedicated supervisor
+  def handle_info({:EXIT, _pid, :name_conflict}, state) do
+    {:noreply, state}
+  end
+
   @impl true
   def terminate(reason, %{pid: pid}) do
     :ok = Supervisor.stop(pid, reason)
