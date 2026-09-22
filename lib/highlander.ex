@@ -42,6 +42,13 @@ defmodule Highlander do
     {:noreply, state}
   end
 
+  # Handle the :shutdown case when the :EXIT bubbles up from the above
+  # `Supervisor.stop/2`. Otherwise we will get a `FunctionClauseError` as well.
+  # that call returns — absorb it.
+  def handle_info({:EXIT, _pid, :shutdown}, state) do
+    {:noreply, state}
+  end
+
   @impl true
   def terminate(reason, %{pid: pid}) do
     :ok = Supervisor.stop(pid, reason)
