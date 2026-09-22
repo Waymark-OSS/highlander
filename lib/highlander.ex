@@ -34,7 +34,7 @@ defmodule Highlander do
   def handle_info({:EXIT, _pid, :name_conflict}, %{pid: pid} = state) do
     Logger.warning("#{__MODULE__}: handling :EXIT for :name_conflict with pid")
     :ok = Supervisor.stop(pid, :shutdown)
-    {:stop, {:shutdown, :name_conflict}, Map.delete(state, :pid)}
+    {:noreply, state |> Map.delete(:pid) |> monitor()}
   end
 
   # We get here if we never started the process. Otherwise we get a
