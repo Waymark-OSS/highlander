@@ -39,6 +39,7 @@ defmodule Highlander do
   # `FunctionClauseError` which eventually causes the entire BEAM process to die
   # if we are not isolating the Highlander processes with a dedicated supervisor
   def handle_info({:EXIT, _pid, :name_conflict}, state) do
+    Logger.warning("#{__MODULE__}: handling :EXIT for :name_conflict")
     {:noreply, state}
   end
 
@@ -46,6 +47,12 @@ defmodule Highlander do
   # `Supervisor.stop/2`. Otherwise we will get a `FunctionClauseError` as well.
   # that call returns — absorb it.
   def handle_info({:EXIT, _pid, :shutdown}, state) do
+    Logger.warning("#{__MODULE__}: hanlding :EXIT for :shutdown")
+    {:noreply, state}
+  end
+
+  def handle_info({:EXIT, _pid, reason}, state) do
+    Logger.warning("#{__MODULE__}: hanlding :EXIT for #{reason}")
     {:noreply, state}
   end
 
