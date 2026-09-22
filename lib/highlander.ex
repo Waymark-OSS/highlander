@@ -27,10 +27,12 @@ defmodule Highlander do
 
   @impl true
   def handle_info({:DOWN, ref, :process, _, _}, %{ref: ref} = state) do
+    Logger.warning("#{__MODULE__}: handling :DOWN for :process")
     {:noreply, register(state)}
   end
 
   def handle_info({:EXIT, _pid, :name_conflict}, %{pid: pid} = state) do
+    Logger.warning("#{__MODULE__}: handling :EXIT for :name_conflict with pid")
     :ok = Supervisor.stop(pid, :shutdown)
     {:stop, {:shutdown, :name_conflict}, Map.delete(state, :pid)}
   end
@@ -47,17 +49,18 @@ defmodule Highlander do
   # `Supervisor.stop/2`. Otherwise we will get a `FunctionClauseError` as well.
   # that call returns — absorb it.
   def handle_info({:EXIT, _pid, :shutdown}, state) do
-    Logger.warning("#{__MODULE__}: hanlding :EXIT for :shutdown")
+    Logger.warning("#{__MODULE__}: handling :EXIT for :shutdown")
     {:noreply, state}
   end
 
   def handle_info({:EXIT, _pid, reason}, state) do
-    Logger.warning("#{__MODULE__}: hanlding :EXIT for #{reason}")
+    Logger.warning("#{__MODULE__}: handling :EXIT for #{reason}")
     {:noreply, state}
   end
 
   @impl true
   def terminate(reason, %{pid: pid}) do
+    Logger.warning("#{__MODULE__}: handling terminate for #{reason}")
     :ok = Supervisor.stop(pid, reason)
   end
 
