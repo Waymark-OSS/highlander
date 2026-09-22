@@ -32,20 +32,14 @@ defmodule Highlander do
 
   def handle_info({:EXIT, _pid, :name_conflict}, %{pid: pid} = state) do
     :ok = Supervisor.stop(pid, :shutdown)
-    {:stop, {:shutdown, :name_conflict}, Map.delete(state, :pid)}
+    {:noreply, state |> Map.delete(:pid) |> monitor()}
   end
 
-  # We get here if we never started the process. Otherwise we get a
-  # `FunctionClauseError` which eventually causes the entire BEAM process to die
-  # if we are not isolating the Highlander processes with a dedicated supervisor
-  def handle_info({:EXIT, _pid, :name_conflict}, state) do
-    {:noreply, state}
-  end
-
-  # Handle the :shutdown case when the :EXIT bubbles up from the above
-  # `Supervisor.stop/2`. Otherwise we will get a `FunctionClauseError` as well.
-  # that call returns — absorb it.
-  def handle_info({:EXIT, _pid, :shutdown}, state) do
+  # We get here either if we never started the process (`:name_conflict`), or if
+  # a `:shutdown` `:EXIT` bubbles up from the `Supervisor.stop/2` call in the
+  # clause above. Both are safe to absorb since this process isn't (or is no
+  # longer) the owner.
+  def handle_info({:EXIT, _pid, reason}, state) when reason in [:name_conflict, :shutdown] do
     {:noreply, state}
   end
 
